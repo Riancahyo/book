@@ -11,20 +11,22 @@ use Spatie\Permission\Traits\HasRoles;
 class LoanController extends Controller
 {
     use HasRoles;
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $loans = Loan::with(['user', 'book'])->get(); // Memuat data loan beserta relasi user dan book
+        $loans = Loan::with(['user', 'book'])->where('is_archived', false)->get(); // Memuat data loan beserta relasi user dan book
         return view('loans.index', compact('loans'));
     }
 
     public function userLoans()
     {
-        $loans = Loan::with('book')->where('user_id', auth()->id())->get();
+        $loans = Loan::with('book')->where('user_id', auth()->id())->where('is_archived', false)->get();
         return view('user.loans', compact('loans'));
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -47,9 +49,9 @@ class LoanController extends Controller
             'due_date' => 'required|date|after_or_equal:loan_date',
             'status' => 'required|in:Dipinjam,Dikembalikan,Terlambat',
         ]);
-    
+
         Loan::create($validated);
-    
+
         if (auth()->user()->hasRole('admin')) {
             return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil ditambahkan!');
         } else {
@@ -98,7 +100,7 @@ class LoanController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Soft delete the specified resource.
      */
     public function destroy(string $id)
     {
@@ -106,5 +108,60 @@ class LoanController extends Controller
         $loan->delete();
 
         return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil dihapus!');
+    }
+
+    /**
+     * Show trashed loans.
+     */
+    public function trashed()
+    {
+        $loans = Loan::onlyTrashed()->with(['user', 'book'])->get();
+        return view('loans.trashed', compact('loans'));
+    }
+
+    /**
+     * Restore a soft-deleted loan.
+     */
+    public function restore(string $id)
+    {
+        $loan = Loan::withTrashed()->findOrFail($id);
+        $loan->restore();
+
+        return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil dipulihkan!');
+    }
+
+    /**
+     * Permanently delete a loan.
+     */
+    public function forceDelete(string $id)
+    {
+        $loan = Loan::withTrashed()->findOrFail($id);
+        $loan->forceDelete();
+
+        return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil dihapus secara permanen!');
+    }
+
+    /**
+     * Archive a loan.
+     */
+    public function archive(string $id)
+    {
+        $loan = Loan::findOrFail($id);
+        $loan->is_archived = true;
+        $loan->save();
+
+        return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil diarsipkan!');
+    }
+
+    /**
+     * Unarchive a loan.
+     */
+    public function unarchive(string $id)
+    {
+        $loan = Loan::findOrFail($id);
+        $loan->is_archived = false;
+        $loan->save();
+
+        return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil dikembalikan dari arsip!');
     }
 }

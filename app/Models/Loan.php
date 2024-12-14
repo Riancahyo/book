@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Loan extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     // Kolom yang dapat diisi secara massal
     protected $fillable = [
@@ -16,9 +18,10 @@ class Loan extends Model
         'loan_date',
         'due_date',
         'status',
+        'is_archived',
     ];
 
-    protected $dates = ['loan_date', 'due_date'];
+    protected $dates = ['loan_date', 'due_date', 'delete_at'];
 
     // Relasi dengan model User
     public function user()

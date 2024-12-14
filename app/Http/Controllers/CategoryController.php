@@ -9,16 +9,17 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::all();
-        return view('categories.index', compact('categories'));
+        // Mengambil semua kategori termasuk kategori yang dihapus (soft delete)
+        $categories = Category::withoutTrashed()->paginate(10);
+    return view('categories.index', compact('categories'));
     }
 
     public function userCategories()
     {
-        $categories = Category::all();
+        // Mengambil kategori yang tidak diarsipkan untuk user
+        $categories = Category::where('is_archived', false)->get();
         return view('user.categories', compact('categories'));
     }
-
 
     public function create()
     {
@@ -52,7 +53,7 @@ class CategoryController extends Controller
     public function show($id)
     {
         // Menampilkan detail kategori yang dipilih
-        $category = Category::findOrFail($id);
+        $category = Category::withTrashed()->findOrFail($id);
         return view('categories.show', compact('category'));
     }
 
@@ -77,12 +78,44 @@ class CategoryController extends Controller
 
     public function destroy($id)
     {
-        // Menghapus kategori berdasarkan ID
+        // Soft delete kategori berdasarkan ID
         $category = Category::findOrFail($id);
         $category->delete();
 
         // Redirect ke halaman daftar kategori dengan pesan sukses
         return redirect()->route('categories.index')
             ->with('success', 'Kategori berhasil dihapus!');
+    }
+
+    public function restore($id)
+    {
+        // Memulihkan kategori yang dihapus (soft delete)
+        $category = Category::withTrashed()->findOrFail($id);
+        $category->restore();
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Kategori berhasil dipulihkan!');
+    }
+
+    public function archive($id)
+    {
+        // Mengarsipkan kategori
+        $category = Category::findOrFail($id);
+        $category->is_archived = true;
+        $category->save();
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Kategori berhasil diarsipkan!');
+    }
+
+    public function unarchive($id)
+    {
+        // Membatalkan arsip kategori
+        $category = Category::findOrFail($id);
+        $category->is_archived = false;
+        $category->save();
+
+        return redirect()->route('categories.index')
+            ->with('success', 'Kategori berhasil dikembalikan dari arsip!');
     }
 }

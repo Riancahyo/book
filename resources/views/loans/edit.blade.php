@@ -62,7 +62,7 @@
                                 name="loan_date" 
                                 type="date" 
                                 class="mt-1 block w-full" 
-                                value="{{ old('loan_date', $loan->loan_date ? $loan->loan_date->format('Y-m-d') : '') }}" 
+                                value="{{ old('loan_date', $loan->loan_date instanceof \DateTime ? $loan->loan_date->format('Y-m-d') : $loan->loan_date) }}"
                                 required 
                             />
                             <x-input-error :messages="$errors->get('loan_date')" class="mt-2" />
@@ -75,7 +75,7 @@
                                 name="due_date" 
                                 type="date" 
                                 class="mt-1 block w-full" 
-                                value="{{ old('due_date', $loan->due_date ? $loan->due_date->format('Y-m-d') : '') }}" 
+                                value="{{ old('due_date', $loan->due_date instanceof \DateTime ? $loan->due_date->format('Y-m-d') : $loan->due_date) }}"
                                 required 
                             />
                             <x-input-error :messages="$errors->get('due_date')" class="mt-2" />

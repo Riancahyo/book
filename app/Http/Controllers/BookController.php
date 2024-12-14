@@ -11,14 +11,14 @@ class BookController extends Controller
     // Menampilkan semua buku
     public function index()
     {
-        $books = Book::with('category', 'user')->paginate(10); // Ambil semua buku dengan relasi
+        $books = Book::with('category', 'user')->where('is_archived', false)->paginate(10); // Buku yang aktif
         $categories = Category::all(); // Ambil semua kategori
         return view('books.index', compact('books', 'categories')); // Kirim data ke view
     }
 
     public function userBooks()
     {
-        $books = Book::with('category')->where('status', 'Tersedia')->get(); // Hanya buku yang tersedia
+        $books = Book::with('category')->where('status', 'Tersedia')->where('is_archived', false)->get(); // Buku yang tersedia dan tidak diarsipkan
         return view('user.books', compact('books'));
     }
 
@@ -96,17 +96,62 @@ class BookController extends Controller
         return redirect()->route('books.index')->with('success', 'Buku berhasil diperbarui.');
     }
 
-    // Menghapus buku
+    // Menghapus buku (Soft Delete)
     public function destroy(Book $book)
     {
-        $book->delete(); // Menghapus buku
+        $book->delete(); // Soft delete buku
         return redirect()->route('books.index')->with('success', 'Buku berhasil dihapus.');
     }
 
     // Menampilkan buku berdasarkan kategori
     public function booksByCategory(Category $category)
     {
-        $books = $category->books()->paginate(10); // Ambil semua buku dalam kategori dengan paginasi
+        $books = $category->books()->where('is_archived', false)->paginate(10); // Buku dalam kategori yang tidak diarsipkan
         return view('books.index', compact('books', 'category')); // Kirim data ke view
+    }
+
+    // Mengarsipkan buku
+    public function archive($id)
+    {
+        $book = Book::findOrFail($id);
+        $book->is_archived = true;
+        $book->save();
+
+        return redirect()->back()->with('success', 'Buku berhasil diarsipkan.');
+    }
+
+    // Mengembalikan buku dari arsip
+    public function unarchive($id)
+    {
+        $book = Book::findOrFail($id);
+        $book->is_archived = false;
+        $book->save();
+
+        return redirect()->back()->with('success', 'Buku berhasil dikembalikan dari arsip.');
+    }
+
+    // Menampilkan buku yang dihapus (Soft Delete)
+    public function trashed()
+    {
+        $books = Book::onlyTrashed()->paginate(10); // Buku yang dihapus saja
+        return view('books.trashed', compact('books'));
+    }
+
+    // Mengembalikan buku yang dihapus (Restore)
+    public function restore($id)
+    {
+        $book = Book::onlyTrashed()->findOrFail($id);
+        $book->restore();
+
+        return redirect()->route('books.index')->with('success', 'Buku berhasil dikembalikan.');
+    }
+
+    // Menghapus permanen buku
+    public function forceDelete($id)
+    {
+        $book = Book::onlyTrashed()->findOrFail($id);
+        $book->forceDelete();
+
+        return redirect()->route('books.index')->with('success', 'Buku berhasil dihapus permanen.');
     }
 }

@@ -13,15 +13,13 @@ Route::view('/', 'welcome')->name('welcome');
 
 // Halaman kategori untuk user
 Route::get('/user/categories', [CategoryController::class, 'userCategories'])->name('user.categories');
-    // ->middleware('auth');
 Route::get('/user/loans', [LoanController::class, 'userLoans'])->name('user.loans')
-->middleware('auth');
+    ->middleware('auth');
 
 // Halaman buku untuk user
 Route::get('/user/books', [BookController::class, 'userBooks'])->name('user.books');
-    // ->middleware('auth');
 
-// Rute untuk halaman login dan register, mengarah ke halaman login
+// Rute untuk halaman login dan register
 Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('login', [LoginController::class, 'login']);
 Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
@@ -45,13 +43,26 @@ Route::group(['middleware' => ['auth']], function () {
     Route::resource('books', BookController::class);  // Rute untuk mengelola buku
     Route::resource('loans', LoanController::class);  // Rute untuk mengelola pinjaman
     Route::resource('categories', CategoryController::class);  // Rute untuk mengelola kategori
+
+    // Rute tambahan untuk Soft Delete dan Arsip
+    Route::get('books/trashed', [BookController::class, 'trashed'])->name('books.trashed');
+    Route::post('books/{id}/restore', [BookController::class, 'restore'])->name('books.restore');
+    Route::delete('books/{id}/force-delete', [BookController::class, 'forceDelete'])->name('books.force-delete');
+    Route::post('books/{id}/archive', [BookController::class, 'archive'])->name('books.archive');
+    Route::post('books/{id}/unarchive', [BookController::class, 'unarchive'])->name('books.unarchive');
+
+    Route::get('categories/trashed', [CategoryController::class, 'trashed'])->name('categories.trashed');
+    Route::post('categories/{id}/restore', [CategoryController::class, 'restore'])->name('categories.restore');
+    Route::delete('categories/{id}/force-delete', [CategoryController::class, 'forceDelete'])->name('categories.force-delete');
+
+    Route::get('loans/trashed', [LoanController::class, 'trashed'])->name('loans.trashed');
+    Route::post('loans/{id}/restore', [LoanController::class, 'restore'])->name('loans.restore');
+    Route::delete('loans/{id}/force-delete', [LoanController::class, 'forceDelete'])->name('loans.force-delete');
 });
 
-// Rute yang hanya dapat diakses oleh user yang terautentikasi
+// Rute untuk user terautentikasi (opsional, sesuai kebutuhan proyek)
 Route::group(['middleware' => ['auth']], function () {
-    // Anda bisa menambahkan rute-rute user yang hanya bisa diakses jika sudah login di sini
-    // Misalnya:
-    // Route::get('/user/profile', [UserController::class, 'profile'])->name('user.profile');
+    // Tambahkan rute khusus user terautentikasi di sini
 });
 
 require __DIR__.'/auth.php';

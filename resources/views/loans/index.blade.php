@@ -37,7 +37,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($loans as $loan)
-                                        <tr>
+                                        <tr class="{{ $loan->trashed() ? 'table-danger' : '' }}">
                                             <td class="text-center">{{ $loan->id }}</td>
                                             <td class="text-center">{{ $loan->user_id }}</td>
                                             <td class="text-center">{{ $loan->book->title }}</td>
@@ -49,13 +49,25 @@
                                                 </span>
                                             </td>
                                             <td class="text-center">
-                                                <a href="{{ route('loans.show', $loan->id) }}" class="btn btn-info btn-sm">Detail</a>
-                                                <a href="{{ route('loans.edit', $loan->id) }}" class="btn btn-warning btn-sm mx-1">Edit</a>
-                                                <form action="{{ route('loans.destroy', $loan->id) }}" method="POST" style="display:inline;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus peminjaman ini?')">Hapus</button>
-                                                </form>
+                                                @if ($loan->trashed())
+                                                    <form action="{{ route('loans.restore', $loan->id) }}" method="POST" style="display:inline;">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-success btn-sm">Restore</button>
+                                                    </form>
+                                                    <form action="{{ route('loans.forceDelete', $loan->id) }}" method="POST" style="display:inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus peminjaman ini secara permanen?')">Hapus Permanen</button>
+                                                    </form>
+                                                @else
+                                                    <a href="{{ route('loans.show', $loan->id) }}" class="btn btn-info btn-sm">Detail</a>
+                                                    <a href="{{ route('loans.edit', $loan->id) }}" class="btn btn-warning btn-sm mx-1">Edit</a>
+                                                    <form action="{{ route('loans.destroy', $loan->id) }}" method="POST" style="display:inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus peminjaman ini?')">Hapus</button>
+                                                    </form>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endforeach

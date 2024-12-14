@@ -25,7 +25,7 @@
                     <div class="card">
                         <div class="card-body">
                             <table class="table table-hover">
-                                <thead>
+                                <thead class="thead-light">
                                     <tr>
                                         <th class="text-center">ID</th>
                                         <th class="text-center">User ID</th>
@@ -38,8 +38,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($books as $book)
-                                        <tr>
+                                    @forelse ($books as $book)
+                                        <tr class="{{ $book->trashed() ? 'table-warning' : '' }}">
                                             <td class="text-center">{{ $book->id }}</td>
                                             <td class="text-center">{{ $book->user_id }}</td>
                                             <td class="text-center">{{ $book->title }}</td>
@@ -48,16 +48,32 @@
                                             <td class="text-center">{{ $book->status }}</td>
                                             <td class="text-center">{{ $book->category->name ?? 'Tanpa Kategori' }}</td>
                                             <td class="text-center">
-                                                <a href="{{ route('books.show', $book->id) }}" class="btn btn-info btn-sm">Detail</a>
-                                                <a href="{{ route('books.edit', $book->id) }}" class="btn btn-warning btn-sm mx-1 mr-2 ml-2">Edit</a>
-                                                <form action="{{ route('books.destroy', $book->id) }}" method="POST" style="display:inline;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
-                                                </form>
+                                                @if ($book->trashed())
+                                                    <form action="{{ route('books.restore', $book->id) }}" method="POST" style="display:inline;">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-success btn-sm">Restore</button>
+                                                    </form>
+                                                    <form action="{{ route('books.forceDelete', $book->id) }}" method="POST" style="display:inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm">Hapus Permanen</button>
+                                                    </form>
+                                                @else
+                                                    <a href="{{ route('books.show', $book->id) }}" class="btn btn-info btn-sm">Detail</a>
+                                                    <a href="{{ route('books.edit', $book->id) }}" class="btn btn-warning btn-sm mx-1">Edit</a>
+                                                    <form action="{{ route('books.destroy', $book->id) }}" method="POST" style="display:inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                                                    </form>
+                                                @endif
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="8" class="text-center">Tidak ada data buku.</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
