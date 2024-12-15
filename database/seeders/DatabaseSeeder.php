@@ -14,10 +14,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            CategorySeeder::class,
-            BookSeeder::class,
-        ]);
+        // $this->call([
+        //     CategorySeeder::class,
+        //     BookSeeder::class,
+        // ]);
 
         // Menghapus user lama dengan email 'test@example.com' jika ada
         User::where('email', 'test@example.com')->delete();
