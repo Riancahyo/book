@@ -20,13 +20,24 @@ new #[Layout('layouts.guest')] class extends Component
 
         Session::regenerate();
 
-        // Redirect based on the role of the user
-        if (auth()->user()->role === 'admin') {
+        // Ambil pengguna yang sedang login
+        $user = auth()->user();
+
+        // Ambil role_id dari tabel model_has_roles
+        $roleId = \DB::table('model_has_roles')
+            ->where('model_id', $user->id)
+            ->where('model_type', get_class($user))
+            ->value('role_id');
+
+        // Redirect berdasarkan role_id
+        if ($roleId == 1) {
+            // Admin
             $this->redirect(route('dashboard', absolute: false), navigate: true);
-        } elseif (auth()->user()->role === 'user') {
+        } elseif ($roleId == 2) {
+            // User
             $this->redirect(route('welcome', absolute: false), navigate: true);
         } else {
-            // Default redirect if no role is assigned
+            // Role tidak diketahui, redirect default
             $this->redirect(route('welcome', absolute: false), navigate: true);
         }
     }

@@ -32,7 +32,8 @@ class LoanController extends Controller
      */
     public function create()
     {
-        $books = Book::all();
+        $borrowedBookIds = Loan::where('status', '!=', 'Dikembalikan')->pluck('book_id');
+        $books = Book::whereNotIn('id', $borrowedBookIds)->get();
         $users = User::all();
         return view('loans.create', compact('books', 'users'));
     }
@@ -44,15 +45,25 @@ class LoanController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'book_id' => 'required|exists:books,id',
+            'book_id' => [
+                'required',
+                'exists:books,id',
+                \Illuminate\Validation\Rule::notIn(Loan::where('status', '!=', 'Dikembalikan')->pluck('book_id')->toArray()),
+            ],
             'loan_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:loan_date',
             'status' => 'required|in:Dipinjam,Dikembalikan,Terlambat',
+        ], [
+            'book_id.not_in' => 'Buku ini sudah dipinjam oleh pengguna lain.',
         ]);
 
         Loan::create($validated);
 
-        return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil ditambahkan!');
+        if (auth()->user()->hasRole('admin')) {
+            return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil dibuat');
+        } else {
+            return redirect()->route('user.loans')->with('success', 'Peminjaman berhasil dibuat');
+        }
     }
 
     /**

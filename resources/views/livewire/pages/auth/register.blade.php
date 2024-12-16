@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
+use Spatie\Permission\Models\Role;
 
 new #[Layout('layouts.guest')] class extends Component
 {
@@ -32,7 +33,15 @@ new #[Layout('layouts.guest')] class extends Component
         $validated['password'] = Hash::make($validated['password']);
 
         // Create user
-        $user = User::create($validated);
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+        ]);
+
+        // Assign role using Spatie Permission
+        $role = Role::firstOrCreate(['name' => $validated['role']]);
+        $user->assignRole($role);
 
         // Dispatch event
         event(new Registered($user));
@@ -41,7 +50,7 @@ new #[Layout('layouts.guest')] class extends Component
         Auth::login($user);
 
         // Redirect based on role
-        if ($user->role === 'admin') {
+        if ($user->hasRole('admin')) {
             $this->redirect(route('dashboard', absolute: false), navigate: true);
         } else {
             $this->redirect(route('welcome', absolute: false), navigate: true);
@@ -85,7 +94,7 @@ new #[Layout('layouts.guest')] class extends Component
             <x-input-label for="role" :value="__('Role')" />
             <select wire:model="role" id="role" class="block mt-1 w-full" name="role" required>
                 <option value="user">User</option>
-                <option value="admin">Admin</option>
+                {{-- <option value="admin">Admin</option> --}}
             </select>
             <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>

@@ -23,8 +23,8 @@
                     </div>
 
                     <div class="card">
-                        <div class="card-body">
-                            <table class="table table-hover">
+                        <div class="card-body w-full overflow-x-auto"> <!-- Menambahkan kelas w-full -->
+                            <table class="table table-hover w-full"> <!-- Kelas w-full diterapkan pada tabel -->
                                 <thead>
                                     <tr>
                                         <th class="text-center">ID</th>

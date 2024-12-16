@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreBookRequest;
 
 class BookController extends Controller
 {
@@ -31,7 +32,7 @@ class BookController extends Controller
     }
 
     // Menyimpan buku baru
-    public function store(Request $request)
+    public function store(StoreBookRequest $request)
     {
         $request->validate([
             'title' => 'required|max:255',

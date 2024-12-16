@@ -20,8 +20,8 @@
                     <a href="{{ route('loans.index') }}" class="btn btn-primary mb-3">Kembali ke Daftar Loans</a>
 
                     <div class="card">
-                        <div class="card-body">
-                            <table class="table table-hover">
+                        <div class="card-body w-full overflow-x-auto"> <!-- Menambahkan kelas w-full -->
+                            <table class="table table-hover w-full"> <!-- Kelas w-full diterapkan pada tabel -->
                                 <thead>
                                     <tr>
                                         <th>ID</th>
