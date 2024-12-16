@@ -4,6 +4,7 @@ namespace App\Livewire\Forms;
 
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -31,7 +32,7 @@ class LoginForm extends Form
         $this->ensureIsNotRateLimited();
 
         // Coba login dengan kredensial yang diberikan
-        if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
+        if (!Auth::attempt($this->only(['email', 'password']), $this->remember)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -41,7 +42,15 @@ class LoginForm extends Form
 
         // Pastikan pengguna memiliki peran yang sesuai
         $user = Auth::user(); // Ambil data pengguna yang sedang login
-        if (!in_array($user->role, ['admin', 'user'])) { // Sesuaikan validasi role di sini
+
+        // Ambil role_id dari tabel model_has_roles
+        $roleId = DB::table('model_has_roles')
+            ->where('model_id', $user->id)
+            ->where('model_type', get_class($user))
+            ->value('role_id');
+
+        // Validasi role berdasarkan role_id
+        if (!in_array($roleId, [1, 2])) { // 1 = admin, 2 = user
             Auth::logout(); // Logout pengguna jika role tidak sesuai
             throw ValidationException::withMessages([
                 'form.email' => 'Access denied: Invalid role.',
@@ -56,7 +65,7 @@ class LoginForm extends Form
      */
     protected function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -77,6 +86,6 @@ class LoginForm extends Form
      */
     protected function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->email).'|'.request()->ip());
+        return Str::transliterate(Str::lower($this->email) . '|' . request()->ip());
     }
 }

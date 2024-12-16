@@ -43,18 +43,18 @@
                         </div>
 
                         <!-- Buku yang Dipinjam -->
-                        <div>
-                            <x-input-label for="book_id" value="Buku yang Dipinjam" />
-                            <select name="book_id" id="book_id" class="mt-1 block w-full" required>
-                                <option value="">Pilih Buku</option>
-                                @foreach($books as $book)
-                                    <option value="{{ $book->id }}" {{ old('book_id') == $book->id ? 'selected' : '' }}>
-                                        {{ $book->title }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <x-input-error :messages="$errors->get('book_id')" class="mt-2" />
-                        </div>
+<div>
+    <x-input-label for="book_id" value="Buku yang Dipinjam" />
+    <select name="book_id" id="book_id" class="mt-1 block w-full" required>
+        <option value="">Pilih Buku</option>
+        @foreach($books as $book)
+            <option value="{{ $book->id }}" {{ old('book_id') == $book->id ? 'selected' : '' }}>
+                {{ $book->title }}
+            </option>
+        @endforeach
+    </select>
+    <x-input-error :messages="$errors->get('book_id')" class="mt-2" />
+</div>
 
                         <!-- Tanggal Peminjaman -->
                         <div>
@@ -102,8 +102,8 @@
                             </x-primary-button>
 
                             <a href="{{ auth()->user()->hasRole('admin') ? route('loans.index') : route('user.loans') }}" 
-                            class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                {{ __('Batal') }}
+                                class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    {{ __('Batal') }}
                             </a>
                         </div>
                     </form>

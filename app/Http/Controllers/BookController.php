@@ -5,34 +5,35 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreBookRequest;
 
 class BookController extends Controller
 {
-    // Menampilkan semua buku
+    // Menampilkan semua buku aktif (tidak diarsipkan)
     public function index()
     {
-        $books = Book::with('category', 'user')->paginate(10); // Ambil semua buku dengan relasi
-        $categories = Category::all(); // Ambil semua kategori
-        return view('books.index', compact('books', 'categories')); // Kirim data ke view
+        $books = Book::with(['category', 'user'])->where('is_archived', false)->paginate(10);
+        $categories = Category::all();
+        return view('books.index', compact('books', 'categories'));
     }
 
+    // Menampilkan buku yang tersedia untuk user
     public function userBooks()
     {
-        $books = Book::with('category')->where('status', 'Tersedia')->get(); // Hanya buku yang tersedia
+        $books = Book::with('category')->where('status', 'Tersedia')->where('is_archived', false)->get();
         return view('user.books', compact('books'));
     }
 
-    // Menampilkan form untuk menambahkan buku baru
+    // Menampilkan form tambah buku
     public function create()
     {
-        $categories = Category::all(); // Ambil semua kategori
-        return view('books.create', compact('categories')); // Kirim kategori ke view
+        $categories = Category::all();
+        return view('books.create', compact('categories'));
     }
 
     // Menyimpan buku baru
-    public function store(Request $request)
+    public function store(StoreBookRequest $request)
     {
-        // Validasi data
         $request->validate([
             'title' => 'required|max:255',
             'author' => 'required|max:225',
@@ -40,11 +41,10 @@ class BookController extends Controller
             'status' => 'required|in:Tersedia,Tidak_Tersedia',
             'category_id' => 'nullable|exists:categories,id',
             'user_id' => 'nullable|exists:users,id',
-            'gdrive_link' => 'nullable|url', // Validasi URL untuk Google Drive
-            'image' => 'nullable|image|mimes:jpg,png,jpeg,gif|max:2048', // Validasi file image
+            'gdrive_link' => 'nullable|url',
+            'image' => 'nullable|image|mimes:jpg,png,jpeg,gif|max:2048',
         ]);
 
-        // Simpan gambar jika ada
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('img', 'public');
             $request->merge(['image' => $imagePath]);
@@ -52,27 +52,25 @@ class BookController extends Controller
 
         Book::create($request->all());
 
-        // Redirect ke index buku dengan pesan sukses
         return redirect()->route('books.index')->with('success', 'Buku berhasil ditambahkan.');
     }
 
     // Menampilkan detail buku
     public function show(Book $book)
     {
-        return view('books.show', compact('book')); // Kirim data buku ke view
+        return view('books.show', compact('book'));
     }
 
-    // Menampilkan form untuk mengedit buku
+    // Menampilkan form edit buku
     public function edit(Book $book)
     {
-        $categories = Category::all(); // Ambil semua kategori
-        return view('books.edit', compact('book', 'categories')); // Kirim data ke view
+        $categories = Category::all();
+        return view('books.edit', compact('book', 'categories'));
     }
 
     // Memperbarui buku
     public function update(Request $request, Book $book)
     {
-        // Validasi data
         $request->validate([
             'title' => 'required|max:255',
             'author' => 'required|max:225',
@@ -80,11 +78,10 @@ class BookController extends Controller
             'status' => 'required|in:Tersedia,Tidak_Tersedia',
             'category_id' => 'nullable|exists:categories,id',
             'user_id' => 'nullable|exists:users,id',
-            'gdrive_link' => 'nullable|url', // Validasi URL untuk Google Drive
-            'image' => 'nullable|image|mimes:jpg,png,jpeg,gif|max:2048', // Validasi file image
+            'gdrive_link' => 'nullable|url',
+            'image' => 'nullable|image|mimes:jpg,png,jpeg,gif|max:2048',
         ]);
 
-        // Simpan gambar jika ada
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('img', 'public');
             $book->image = $imagePath;
@@ -92,21 +89,57 @@ class BookController extends Controller
 
         $book->update($request->except('image'));
 
-        // Redirect ke index buku dengan pesan sukses
         return redirect()->route('books.index')->with('success', 'Buku berhasil diperbarui.');
     }
 
-    // Menghapus buku
+    // Menghapus buku secara soft delete
     public function destroy(Book $book)
     {
-        $book->delete(); // Menghapus buku
+        $book->delete();
         return redirect()->route('books.index')->with('success', 'Buku berhasil dihapus.');
     }
 
-    // Menampilkan buku berdasarkan kategori
-    public function booksByCategory(Category $category)
+    // Menampilkan buku yang telah dihapus (soft delete)
+    public function trashed()
     {
-        $books = $category->books()->paginate(10); // Ambil semua buku dalam kategori dengan paginasi
-        return view('books.index', compact('books', 'category')); // Kirim data ke view
+        // Mengambil buku yang sudah dihapus (soft delete)
+        $books = Book::onlyTrashed()->paginate(10);
+
+        // Mengarahkan ke view 'trashed'
+        return view('books.trashed', compact('books'));
+    }
+
+    // Mengembalikan buku dari soft delete
+    public function restore($id)
+    {
+        $book = Book::onlyTrashed()->findOrFail($id);
+        $book->restore();
+        return redirect()->route('books.trashed')->with('success', 'Buku berhasil dikembalikan.');
+    }
+
+    // Menghapus buku secara permanen
+    public function forceDelete($id)
+    {
+        $book = Book::onlyTrashed()->findOrFail($id);
+        $book->forceDelete();
+        return redirect()->route('books.trashed')->with('success', 'Buku berhasil dihapus permanen.');
+    }
+
+    // Mengarsipkan buku
+    public function archive($id)
+    {
+        $book = Book::findOrFail($id);
+        $book->is_archived = true;
+        $book->save();
+        return redirect()->back()->with('success', 'Buku berhasil diarsipkan.');
+    }
+
+    // Mengembalikan buku dari arsip
+    public function unarchive($id)
+    {
+        $book = Book::findOrFail($id);
+        $book->is_archived = false;
+        $book->save();
+        return redirect()->back()->with('success', 'Buku berhasil dikembalikan dari arsip.');
     }
 }

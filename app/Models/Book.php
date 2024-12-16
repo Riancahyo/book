@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Book extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     // Definisikan atribut yang bisa diisi secara massal
     protected $fillable = [
@@ -20,7 +22,10 @@ class Book extends Model
         'category_id',
         'image',
         'gdrive_link',
+        'is_archived',
     ];
+
+    protected $dates = ['deleted_at'];
 
     /**
      * Relasi ke model Category
