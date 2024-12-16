@@ -9,7 +9,6 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-
                     <h1 class="mb-4">Daftar Buku</h1>
 
                     @if (session('success'))
@@ -20,6 +19,7 @@
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <a href="{{ route('books.create') }}" class="btn btn-primary">Tambah Buku Baru</a>
+                        <a href="{{ route('books.trashed') }}" class="btn btn-secondary ml-4">Lihat Arsip</a>
                     </div>
 
                     <div class="card">
@@ -53,7 +53,7 @@
                                                         @csrf
                                                         <button type="submit" class="btn btn-success btn-sm">Restore</button>
                                                     </form>
-                                                    <form action="{{ route('books.forceDelete', $book->id) }}" method="POST" style="display:inline;">
+                                                    <form action="{{ route('books.force-delete', $book->id) }}" method="POST" style="display:inline;">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-danger btn-sm">Hapus Permanen</button>
@@ -83,7 +83,6 @@
                     <div class="d-flex justify-content-center mt-4">
                         {{ $books->links() }}
                     </div>
-
                 </div>
             </div>
         </div>

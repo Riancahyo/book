@@ -19,6 +19,7 @@
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <a href="{{ route('loans.create') }}" class="btn btn-primary">Tambah Peminjaman Baru</a>
+                        <a href="{{ route('loans.trashed') }}" class="btn btn-secondary ml-4">Lihat Arsip</a>
                     </div>
 
                     <div class="card">
@@ -27,7 +28,7 @@
                                 <thead>
                                     <tr>
                                         <th class="text-center">ID</th>
-                                        <th class="text-center">User ID</th>
+                                        <th class="text-center">User</th>
                                         <th class="text-center">Buku</th>
                                         <th class="text-center">Tanggal Pinjam</th>
                                         <th class="text-center">Tanggal Kembali</th>
@@ -36,10 +37,10 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($loans as $loan)
-                                        <tr class="{{ $loan->trashed() ? 'table-danger' : '' }}">
+                                    @forelse ($loans as $loan)
+                                        <tr class="{{ $loan->trashed() ? 'table-warning' : '' }}">
                                             <td class="text-center">{{ $loan->id }}</td>
-                                            <td class="text-center">{{ $loan->user_id }}</td>
+                                            <td class="text-center">{{ $loan->user->name ?? 'Guest' }}</td>
                                             <td class="text-center">{{ $loan->book->title }}</td>
                                             <td class="text-center">{{ $loan->loan_date }}</td>
                                             <td class="text-center">{{ $loan->due_date }}</td>
@@ -70,11 +71,20 @@
                                                 @endif
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="7" class="text-center">Tidak ada data peminjaman.</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
+                    <!-- Paginasi -->
+                    {{-- <div class="d-flex justify-content-center mt-4">
+                        {{ $loans->links() }}
+                    </div> --}}
                 </div>
             </div>
         </div>

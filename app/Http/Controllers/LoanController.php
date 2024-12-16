@@ -17,13 +17,13 @@ class LoanController extends Controller
      */
     public function index()
     {
-        $loans = Loan::with(['user', 'book'])->where('is_archived', false)->get(); // Memuat data loan beserta relasi user dan book
+        $loans = Loan::with(['user', 'book'])->where('is_archived', false)->paginate(10);
         return view('loans.index', compact('loans'));
     }
 
     public function userLoans()
     {
-        $loans = Loan::with('book')->where('user_id', auth()->id())->where('is_archived', false)->get();
+        $loans = Loan::with('book')->where('user_id', auth()->id())->where('is_archived', false)->paginate(10);
         return view('user.loans', compact('loans'));
     }
 
@@ -32,8 +32,8 @@ class LoanController extends Controller
      */
     public function create()
     {
-        $books = Book::all(); // Mendapatkan semua data buku
-        $users = User::all(); // Mendapatkan semua data pengguna
+        $books = Book::all();
+        $users = User::all();
         return view('loans.create', compact('books', 'users'));
     }
 
@@ -52,11 +52,7 @@ class LoanController extends Controller
 
         Loan::create($validated);
 
-        if (auth()->user()->hasRole('admin')) {
-            return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil ditambahkan!');
-        } else {
-            return redirect()->route('user.loans')->with('success', 'Peminjaman berhasil ditambahkan!');
-        }
+        return redirect()->route('loans.index')->with('success', 'Peminjaman berhasil ditambahkan!');
     }
 
     /**
@@ -115,7 +111,7 @@ class LoanController extends Controller
      */
     public function trashed()
     {
-        $loans = Loan::onlyTrashed()->with(['user', 'book'])->get();
+        $loans = Loan::onlyTrashed()->with(['user', 'book'])->paginate(10);
         return view('loans.trashed', compact('loans'));
     }
 
